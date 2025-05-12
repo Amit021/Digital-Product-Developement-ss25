@@ -12,6 +12,7 @@ import VitalMeasurementsScreen from './src/screens/VitalMeasurementsScreen';
 import AidsPresentScreen from './src/screens/AidsPresentScreen';
 import InjuryAssessmentScreen from './src/screens/InjuryAssessmentScreen';
 import FirstAidOfferedScreen from './src/screens/FirstAidOfferedScreen';
+import ProfileScreen from './src/screens/ProfileScreen';
 
 export type RootStackParamList = {
   Home: undefined;
@@ -23,6 +24,7 @@ export type RootStackParamList = {
   AidsPresent: { resident: any; condition: string; placeOfFall: any; vitals: any};
   InjuryAssessment: {resident: any; condition: string; placeOfFall: any; vitals: any; aidsPresent: string[];};
   FirstAidOffered: { resident: any; condition: string; placeOfFall: any; vitals: any; aidsPresent: string[]; injuries: string[];};
+  Profile: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -74,6 +76,11 @@ const App: React.FC = () => {
         <Stack.Screen 
           name="FirstAidOffered" 
           component={FirstAidOfferedScreen} 
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen 
+          name="Profile" 
+          component={ProfileScreen} 
           options={{ headerShown: false }}
         />
       </Stack.Navigator>

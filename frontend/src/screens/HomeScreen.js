@@ -90,12 +90,17 @@ const HomeScreen = ({ navigation }) => {
             <Text style={styles.welcomeText}>Hi, WelcomeBack</Text>
             <Text style={styles.userName}>Jane Doe</Text>
           </View>
-          <View style={styles.profileImageWrapper}>
-            <Image
-              source={{ uri: 'https://placekitten.com/60/60' }} // Replace with actual user image
-              style={styles.profileImage}
-            />
-          </View>
+          <View style={styles.userProfileContainer}>
+              <TouchableOpacity 
+              style={styles.profileImageWrapper}
+              onPress={() => navigation.navigate('Profile')}
+              >
+                <Image
+                source={{ uri: 'https://placekitten.com/60/60' }}
+                style={styles.profileImage}
+                />
+                </TouchableOpacity>
+              </View>
         </View>
       </View>
 
@@ -171,10 +176,13 @@ const HomeScreen = ({ navigation }) => {
           <Text style={styles.navIcon}>✉️</Text>
           <Text style={styles.navLabel}>Messages</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
+        <TouchableOpacity
+        style={styles.navItem}
+        onPress={() => navigation.navigate('Profile')}
+        >
           <Text style={styles.navIcon}>👤</Text>
           <Text style={styles.navLabel}>Profile</Text>
-        </TouchableOpacity>
+          </TouchableOpacity>
         <TouchableOpacity style={styles.navItem}>
           <Text style={styles.navIcon}>📅</Text>
           <Text style={styles.navLabel}>Booking</Text>
