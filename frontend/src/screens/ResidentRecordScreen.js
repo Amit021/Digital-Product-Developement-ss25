@@ -1,5 +1,4 @@
-// src/screens/ResidentRecordScreen.js
-
+// src/screens/ResidentRecordScreen.js   ← NEW VERSION
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -7,63 +6,46 @@ import {
   Image,
   StyleSheet,
   ScrollView,
-  ActivityIndicator,
-  Dimensions
+  ActivityIndicator
 } from 'react-native';
 import { fetchResidentRecord } from '../services/api';
 
-// Helper: Convert birth date (YYYY-MM-DD) into an age in years
-const calculateAge = (birthDateString) => {
-  if (!birthDateString) return null;
+/** Turn ISO birthDate → age in years */
+const calcAge = (iso) => {
+  if (!iso) return null;
   const today = new Date();
-  const birthDate = new Date(birthDateString);
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const m = today.getMonth() - birthDate.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-    age--;
-  }
+  const dob   = new Date(iso);
+  let age = today.getFullYear() - dob.getFullYear();
+  const m = today.getMonth() - dob.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
   return age;
-};
-
-// Helper: Get an extension value by URL
-const getExtensionValue = (resource, url) => {
-  const ext = resource.extension?.find((ext) => ext.url === url);
-  if (!ext) return null;
-  if (ext.valueBoolean !== undefined) return ext.valueBoolean;
-  if (ext.valueString) return ext.valueString;
-  if (ext.valueUrl) return ext.valueUrl;
-  if (ext.valueQuantity?.value !== undefined) return ext.valueQuantity.value;
-  return null;
 };
 
 const ResidentRecordScreen = ({ route }) => {
   const { residentId } = route.params;
   const [resident, setResident] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading,  setLoading] = useState(true);
 
   useEffect(() => {
-    const loadResident = async () => {
+    (async () => {
       try {
-        const data = await fetchResidentRecord(residentId);
-        setResident(data);
-      } catch (error) {
-        console.error('Error fetching resident:', error);
+        setResident(await fetchResidentRecord(residentId));
+      } catch (e) {
+        console.error('Error fetching resident', e);
       } finally {
         setLoading(false);
       }
-    };
-    loadResident();
+    })();
   }, [residentId]);
 
   if (loading) {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color="#2689F2" />
-        <Text>Loading resident data...</Text>
+        <Text>Loading resident data…</Text>
       </View>
     );
   }
-
   if (!resident) {
     return (
       <View style={styles.center}>
@@ -72,236 +54,124 @@ const ResidentRecordScreen = ({ route }) => {
     );
   }
 
-  // Extract dynamic fields
-  const firstName = resident.name?.[0]?.given?.join(' ') || '';
-  const lastName = resident.name?.[0]?.family || '';
-  const fullName = `${firstName} ${lastName}`.trim();
-  const gender = resident.gender || 'Unknown';
-  const birthDate = resident.birthDate;
-  const age = calculateAge(birthDate);
-  const weight = getExtensionValue(resident, 'http://example.org/fhir/StructureDefinition/weight');
-  const height = getExtensionValue(resident, 'http://example.org/fhir/StructureDefinition/height');
-  const insurer = getExtensionValue(resident, 'http://example.org/fhir/StructureDefinition/insurer');
-  const dnr = getExtensionValue(resident, 'http://example.org/fhir/StructureDefinition/dnr') === true;
-  const fallRisk = getExtensionValue(resident, 'http://example.org/fhir/StructureDefinition/fallRisk');
-  const vaccinations = getExtensionValue(resident, 'http://example.org/fhir/StructureDefinition/vaccinations');
-  const hospitalHistory = getExtensionValue(resident, 'http://example.org/fhir/StructureDefinition/hospitalHistory');
-  const medications = getExtensionValue(resident, 'http://example.org/fhir/StructureDefinition/medications');
-  const bloodType = getExtensionValue(resident, 'http://example.org/fhir/StructureDefinition/bloodType');
-  const photoUrl = getExtensionValue(resident, 'http://example.org/fhir/StructureDefinition/photo');
+  /* ── plain fields coming from your DB ────────────────────── */
+  const {
+    name,
+    gender,
+    birthDate,
+    photoUrl,
+    insurer,
+    dnr,
+    fallRisk,
+    vaccinations,
+    hospitalHistory,
+    medications,
+    weight,
+    height
+  } = resident;
+  const age = calcAge(birthDate);
 
+  /* ── UI ──────────────────────────────────────────────────── */
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.body}>
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <Text style={styles.headerTitle}>Residents Record</Text>
-          <Text style={styles.headerSubtitle}>WB3</Text>
+        <Text style={styles.headerTitle}>Resident Record</Text>
+        {photoUrl ? (
+          <Image source={{ uri: photoUrl }} style={styles.avatar} />
+        ) : (
+          <View style={[styles.avatar, styles.noPic]}>
+            <Text style={{ color: '#fff' }}>No Photo</Text>
+          </View>
+        )}
+        <Text style={styles.name}>{name}</Text>
+      </View>
+
+      {/* Basic facts */}
+      <View style={styles.row}>
+        <View style={styles.col}>
+          <Text style={styles.label}>Gender</Text>
+          <Text style={styles.val}>{gender ?? '—'}</Text>
         </View>
-        <View style={styles.profileContainer}>
-          {photoUrl ? (
-            <Image style={styles.profileImage} source={{ uri: photoUrl }} />
-          ) : (
-            <View style={styles.profilePlaceholder}>
-              <Text style={styles.profilePlaceholderText}>No Photo</Text>
-            </View>
-          )}
-          <Text style={styles.residentName}>{fullName}</Text>
+        <View style={styles.col}>
+          <Text style={styles.label}>Age</Text>
+          <Text style={styles.val}>{age ? `${age} yrs` : '—'}</Text>
         </View>
       </View>
 
-      {/* Info Section */}
-      <View style={styles.infoContainer}>
-        <View style={styles.infoRow}>
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Gender</Text>
-            <Text style={styles.infoValue}>{gender}</Text>
-          </View>
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Blood Type</Text>
-            <Text style={styles.infoValue}>{bloodType || 'N/A'}</Text>
-          </View>
+      <View style={styles.row}>
+        <View style={styles.col}>
+          <Text style={styles.label}>Weight</Text>
+          <Text style={styles.val}>{weight ? `${weight} kg` : '—'}</Text>
         </View>
-        <View style={styles.infoRow}>
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Age</Text>
-            <Text style={styles.infoValue}>{age ? `${age} Years` : 'N/A'}</Text>
-          </View>
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Weight</Text>
-            <Text style={styles.infoValue}>{weight ? `${weight} Kg` : 'N/A'}</Text>
-          </View>
-        </View>
-        <View style={styles.infoRow}>
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Height</Text>
-            <Text style={styles.infoValue}>{height ? `${height} cm` : 'N/A'}</Text>
-          </View>
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Insurer</Text>
-            <Text style={styles.infoValue}>{insurer || 'N/A'}</Text>
-          </View>
+        <View style={styles.col}>
+          <Text style={styles.label}>Height</Text>
+          <Text style={styles.val}>{height ? `${height} cm` : '—'}</Text>
         </View>
       </View>
 
-      {/* Tiles Section */}
-      <View style={styles.tilesContainer}>
-        <View style={styles.tileRow}>
-          <View style={[styles.tile, { backgroundColor: '#E43336' }]}>
-            <Text style={styles.tileTitle}>DNR</Text>
-            <Text style={styles.tileSubtitle}>{dnr ? 'Yes' : 'No'}</Text>
-          </View>
-          <View style={[styles.tile, { backgroundColor: '#4CB8FF' }]}>
-            <Text style={styles.tileTitle}>Fall Risk</Text>
-            <Text style={styles.tileSubtitle}>{fallRisk || 'N/A'}</Text>
-          </View>
+      <View style={styles.row}>
+        <View style={styles.col}>
+          <Text style={styles.label}>Insurer</Text>
+          <Text style={styles.val}>{insurer ?? '—'}</Text>
         </View>
-        <View style={styles.tileRow}>
-          <View style={[styles.tile, { backgroundColor: '#FFD966' }]}>
-            <Text style={styles.tileTitle}>Vaccinations</Text>
-            <Text style={styles.tileSubtitle}>{vaccinations || 'None'}</Text>
-          </View>
-          <View style={[styles.tile, { backgroundColor: '#6DD0A8' }]}>
-            <Text style={styles.tileTitle}>Hospital History</Text>
-            <Text style={styles.tileSubtitle}>{hospitalHistory || 'None'}</Text>
-          </View>
+        <View style={styles.col}>
+          <Text style={styles.label}>DNR</Text>
+          <Text style={styles.val}>{dnr ? 'Yes' : 'No'}</Text>
         </View>
-        <View style={styles.tileRow}>
-          <View style={[styles.tile, { backgroundColor: '#33E4DB' }]}>
-            <Text style={styles.tileTitle}>Medications</Text>
-            <Text style={styles.tileSubtitle}>{medications || 'None'}</Text>
-          </View>
-        </View>
+      </View>
+
+      {/* Tiles */}
+      <View style={styles.tiles}>
+        <InfoTile title="Fall Risk"  value={fallRisk}/>
+        <InfoTile title="Vaccinations" value={vaccinations}/>
+        <InfoTile title="Hospital History" value={hospitalHistory}/>
+        <InfoTile title="Medications" value={medications}/>
       </View>
     </ScrollView>
   );
 };
 
+/* Small helper to reuse the coloured tiles */
+const InfoTile = ({ title, value }) => (
+  <View style={styles.tile}>
+    <Text style={styles.tileTitle}>{title}</Text>
+    <Text style={styles.tileVal}>{value || 'None'}</Text>
+  </View>
+);
+
 export default ResidentRecordScreen;
 
+/* ── styles (kept minimal & close to your design) ─────────── */
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff'
-  },
-  contentContainer: {
-    paddingBottom: 30
-  },
+  container: { flex: 1, backgroundColor: '#fff' },
+  body:      { paddingBottom: 30 },
+  center:    { flex: 1, justifyContent: 'center', alignItems: 'center' },
+
   header: {
     backgroundColor: '#2260FF',
     paddingVertical: 20,
-    paddingHorizontal: 15,
+    alignItems: 'center',
     borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-    alignItems: 'center'
+    borderBottomRightRadius: 30
   },
-  headerTop: {
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'space-between'
-  },
-  headerTitle: {
-    fontFamily: 'League Spartan',
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#FFFFFF'
-  },
-  headerSubtitle: {
-    fontFamily: 'League Spartan',
-    fontSize: 16,
-    fontWeight: '400',
-    color: '#E9F6FE'
-  },
-  profileContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 15
-  },
-  profileImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    marginRight: 15
-  },
-  profilePlaceholder: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#ccc',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 15
-  },
-  profilePlaceholderText: {
-    color: '#fff'
-  },
-  residentName: {
-    fontFamily: 'League Spartan',
-    fontSize: 22,
-    fontWeight: '600',
-    color: '#FFFFFF'
-  },
-  infoContainer: {
-    paddingHorizontal: 15,
-    paddingVertical: 10
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 10
-  },
-  infoItem: {
-    flex: 1,
-    alignItems: 'center'
-  },
-  infoLabel: {
-    fontFamily: 'League Spartan',
-    fontSize: 12,
-    color: '#252525'
-  },
-  infoValue: {
-    fontFamily: 'League Spartan',
-    fontSize: 14,
-    color: '#2260FF',
-    marginTop: 4,
-    textTransform: 'capitalize'
-  },
-  tilesContainer: {
-    paddingHorizontal: 15,
-    marginTop: 20
-  },
-  tileRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 15
-  },
+  headerTitle: { color: '#E9F6FE', fontSize: 18, marginBottom: 6 },
+  avatar:      { width: 90, height: 90, borderRadius: 45, marginVertical: 10 },
+  noPic:       { backgroundColor: '#999', justifyContent: 'center', alignItems: 'center' },
+  name:        { color: '#fff', fontSize: 22, fontWeight: '600' },
+
+  row:   { flexDirection: 'row', justifyContent: 'space-around', marginVertical: 12 },
+  col:   { alignItems: 'center', flex: 1 },
+  label: { fontSize: 12, color: '#555' },
+  val:   { fontSize: 14, color: '#2260FF', marginTop: 4 },
+
+  tiles: { paddingHorizontal: 15 },
   tile: {
-    flex: 0.48,
-    height: 120,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 10
+    backgroundColor: '#33E4DB',
+    borderRadius: 16,
+    padding: 12,
+    marginTop: 14
   },
-  tileTitle: {
-    fontFamily: 'League Spartan',
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#FFFFFF',
-    marginBottom: 6,
-    textAlign: 'center',
-    textTransform: 'capitalize'
-  },
-  tileSubtitle: {
-    fontFamily: 'League Spartan',
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#FFFFFF',
-    textAlign: 'center'
-  },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center'
-  }
+  tileTitle: { color: '#fff', fontWeight: '600', marginBottom: 4, textAlign: 'center' },
+  tileVal:   { color: '#fff', textAlign: 'center' }
 });
