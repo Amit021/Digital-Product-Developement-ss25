@@ -1,0 +1,53 @@
+// prisma/schema.prisma
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Resident {
+  id            Int              @id @default(autoincrement())
+  name          String
+  gender        String
+  birthDate     DateTime
+  address       String?
+  photoUrl      String?
+  insurer       String?
+  dnr           Boolean?
+  fallRisk      String?
+  vaccinations  String?
+  hospitalHistory String?
+  medications   String?
+  weight        Float?
+  height        Float?
+  incidentReports IncidentReport[]
+}
+
+model Nurse {
+  id            Int       @id @default(autoincrement())
+  email         String    @unique
+  passwordHash  String
+  fullName      String?
+  phone         String?           // NEW
+  avatarUrl     String?           // NEW (image url)
+  dateOfBirth   DateTime?         // NEW
+  createdAt     DateTime  @default(now())
+  incidentReports IncidentReport[]
+}
+
+model IncidentReport {
+  id           Int       @id @default(autoincrement())
+  residentId   Int
+  resident     Resident  @relation(fields: [residentId], references: [id])
+
+  narrative    String    @db.Text
+  pdfBlob      Bytes?
+  createdAt    DateTime  @default(now())
+
+  nurseId      Int?      
+  nurse        Nurse?    @relation(fields: [nurseId], references: [id])
+}
