@@ -82,10 +82,11 @@ app.post('/login', async (req, res) => {
 ─────────────────────────────────────────────────────────*/
 app.get('/residents', async (_req, res) => {
   try {
-    const data = await prisma.resident.findMany();
-    res.json(data);
+    const data = await prisma.resident.findMany();  // This should fetch all records
+    console.log('Fetched residents:', data);  // Log the data for debugging
+    res.json(data);  // Send all residents as response
   } catch (e) {
-    console.error(e);
+    console.error('Error fetching residents:', e);
     res.status(500).send('DB error');
   }
 });
