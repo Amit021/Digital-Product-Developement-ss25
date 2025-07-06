@@ -1,26 +1,35 @@
 {
-  "name": "sturzdoku-mobile",
-  // Pick a stock Node image; nothing fancy needed
+  // ------------------------------------------------------------------
+  // Image with Node 20 + build tools
+  // ------------------------------------------------------------------
   "image": "mcr.microsoft.com/devcontainers/javascript-node:20-bullseye",
 
-  /* ░░░ Automatic installs ░░░ */
-  // 1) First build only
+  // ------------------------------------------------------------------
+  // One-time setup: install node modules + ngrok helper
+  // ------------------------------------------------------------------
   "postCreateCommand": "cd sturzdoku && npm ci && npm install --save-dev @expo/ngrok",
 
-  // 2) Every Codespace start / resume
-  //    Run Expo in tunnel mode **non-interactive** and in background
+  // ------------------------------------------------------------------
+  // Start Expo *in the background* as soon as the container boots
+  // ------------------------------------------------------------------
   "postStartCommand": "cd sturzdoku && npx expo start --tunnel --no-interactive &",
 
-  /* ░░░ Quality-of-life ░░░ */
-  "forwardPorts": [8081],                         // Metro Bundler
+  // ------------------------------------------------------------------
+  // After VS Code attaches, open a terminal that tails Expo output
+  // so you get the QR code automatically.
+  // ------------------------------------------------------------------
+  "postAttachCommand": "bash -lc 'exec clear && ln -sf /dev/pts/1 /tmp/expo-log || true; tail -f /tmp/expo-log'",
+
+  // Forward Metro’s port so the phone can load the bundle
+  "forwardPorts": [8081],
   "portsAttributes": {
     "8081": { "label": "Expo Metro", "onAutoForward": "notify" }
   },
+
+  // Optional VS Code extensions inside the container
   "customizations": {
     "vscode": {
-      "extensions": [
-        "expo.vscode-expo-tools"                 // optional but nice
-      ]
+      "extensions": ["expo.vscode-expo-tools"]
     }
   }
 }
