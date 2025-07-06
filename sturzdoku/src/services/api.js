@@ -33,7 +33,7 @@ function detectHost() {
 }
 
 const HOST = detectHost();
-const BASE_URL = `http://${HOST}:4000`;
+const BASE_URL = 'http://98.81.149.174:4000';
 console.log('[API] baseURL =', BASE_URL);
 
 /*──────────────── axios instance ────────────────*/
