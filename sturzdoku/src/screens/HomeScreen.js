@@ -45,7 +45,7 @@ const HomeScreen = ({ navigation }) => {
   }, []);
 
   /* ─────────────────────────────────────────────────────────
-     2) Re‐read the logged-in nurse’s name from AsyncStorage
+     2) Re‐read the logged-in nurse's name from AsyncStorage
         Every time this screen comes into focus
   ───────────────────────────────────────────────────────── */
   useFocusEffect(
@@ -88,7 +88,41 @@ const HomeScreen = ({ navigation }) => {
   );
 
   /* ─────────────────────────────────────────────────────────
-     4) Early-out loading UI
+     4) Logout function
+  ───────────────────────────────────────────────────────── */
+  const handleLogout = async () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Logout',
+          onPress: async () => {
+            try {
+              // Clear all stored user data
+              await AsyncStorage.multiRemove(['userFullName', 'userToken', 'userId']);
+              
+              // Navigate to login screen and reset the navigation stack
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'Login' }],
+              });
+            } catch (error) {
+              console.error('Error during logout:', error);
+              Alert.alert('Error', 'Failed to logout. Please try again.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  /* ─────────────────────────────────────────────────────────
+     5) Early-out loading UI
   ───────────────────────────────────────────────────────── */
   if (loading) {
     return (
@@ -100,7 +134,7 @@ const HomeScreen = ({ navigation }) => {
   }
 
   /* ─────────────────────────────────────────────────────────
-     5) Main UI
+     6) Main UI
   ───────────────────────────────────────────────────────── */
   return (
     <View style={styles.container}>
@@ -219,14 +253,6 @@ const HomeScreen = ({ navigation }) => {
 
         <TouchableOpacity
           style={styles.navItem}
-          onPress={() => navigation.navigate('PreviousReports')}
-        >
-          <Text style={styles.navIcon}>📝</Text>
-          <Text style={styles.navLabel}>History</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
           onPress={() => navigation.navigate('Profile')}
         >
           <Text style={styles.navIcon}>👤</Text>
@@ -239,6 +265,14 @@ const HomeScreen = ({ navigation }) => {
         >
           <Text style={styles.navIcon}>⚙️</Text>
           <Text style={styles.navLabel}>Settings</Text>
+        </TouchableOpacity>        
+        
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={handleLogout}
+        >
+          <Text style={styles.navIcon}>↪️</Text>
+          <Text style={styles.navLabel}>Logout</Text>
         </TouchableOpacity>
       </View>
 
