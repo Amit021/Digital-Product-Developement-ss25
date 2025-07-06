@@ -82,10 +82,15 @@ app.post('/login', async (req, res) => {
 ─────────────────────────────────────────────────────────*/
 app.get('/residents', async (_req, res) => {
   try {
+    console.log('=== FETCHING RESIDENTS ===');
     const data = await prisma.resident.findMany();
+    console.log(`Found ${data.length} residents`);
+    console.log('First resident:', data[0]?.name);
+    console.log('Last resident:', data[data.length-1]?.name);
+    console.log('=== END FETCHING ===');
     res.json(data);
   } catch (e) {
-    console.error(e);
+    console.error('Error fetching residents:', e);
     res.status(500).send('DB error');
   }
 });
