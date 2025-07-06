@@ -12,7 +12,7 @@ const JWT_SECRET  = process.env.JWT_SECRET || 'please_set_a_real_secret';
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
-
+// pipeline-test 2025-07-06 09:45 CEST
 /*─────────────────────────────────────────────────────────
   AUTH MIDDLEWARE – verifies Bearer-token and stores user id
 ─────────────────────────────────────────────────────────*/
