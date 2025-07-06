@@ -34,7 +34,8 @@ const HomeScreen = ({ navigation }) => {
     (async () => {
       try {
         const data = await fetchAllResidents();
-        setResidents(data);
+        console.log('Fetched residents from API:', data); // Log all residents to check
+        setResidents(data); // Store residents in state
       } catch (err) {
         console.error('Error fetching residents:', err);
         Alert.alert('Error', 'Could not load residents. Please try again.');
