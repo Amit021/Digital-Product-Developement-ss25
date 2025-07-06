@@ -1,0 +1,26 @@
+{
+  "name": "sturzdoku-mobile",
+  // Pick a stock Node image; nothing fancy needed
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:20-bullseye",
+
+  /* ░░░ Automatic installs ░░░ */
+  // 1) First build only
+  "postCreateCommand": "cd sturzdoku && npm ci && npm install --save-dev @expo/ngrok",
+
+  // 2) Every Codespace start / resume
+  //    Run Expo in tunnel mode **non-interactive** and in background
+  "postStartCommand": "cd sturzdoku && npx expo start --tunnel --no-interactive &",
+
+  /* ░░░ Quality-of-life ░░░ */
+  "forwardPorts": [8081],                         // Metro Bundler
+  "portsAttributes": {
+    "8081": { "label": "Expo Metro", "onAutoForward": "notify" }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "expo.vscode-expo-tools"                 // optional but nice
+      ]
+    }
+  }
+}
