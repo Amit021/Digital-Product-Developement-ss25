@@ -1,4 +1,4 @@
-// src/services/api.js
+// sturzdoku/src/services/api.js
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
@@ -31,13 +31,14 @@ function detectHost() {
 }
 
 /*──────────────── base URL resolution ────────────*/
-const PROD_BASE = process.env.EXPO_PUBLIC_API_BASE_URL?.trim(); // injected at build/run time
+const PROD_BASE = process.env.EXPO_PUBLIC_API_BASE_URL?.trim(); // defined via Codespaces/GitHub secret
 const DEV_HOST  = detectHost();
 
 const BASE_URL =
-  __DEV__
-    ? `http://${DEV_HOST}:4000`                // Metro/dev scenario
-    : PROD_BASE || 'https://your-backend.example.com'; // real builds
+  PROD_BASE                                   // ① secret wins (always use remote backend when present)
+  || (__DEV__                                 // ② otherwise: smart host detection in dev
+        ? `http://${DEV_HOST}:4000`
+        : 'https://your-backend.example.com'); // ③ last-chance hard-coded prod URL
 
 console.log('[API] baseURL =', BASE_URL);
 
