@@ -218,6 +218,6 @@ app.put('/me/password', authenticate, async (req, res) => {
 
 /*─────────────────────────────────────────────────────────*/
 const PORT = 4000;
-app.listen(PORT, () =>
-  console.log(`▶︎ Backend listening on http://localhost:${PORT}`),
+app.listen(PORT, '0.0.0.0', () =>
+  console.log(`▶︎ Backend listening on http://0.0.0.0:${PORT}`),
 );
