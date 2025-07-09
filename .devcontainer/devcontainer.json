@@ -15,7 +15,7 @@
   // Every time VS Code starts or attaches, start Expo in this very terminal
   // so you immediately see the ASCII QR code and logs.
   // ------------------------------------------------------------------
-  "postStartCommand": "bash -lc 'cd sturzdoku && exec npx expo start --tunnel'",
+  "postAttachCommand": "bash -lc 'cd sturzdoku && exec npx expo start --tunnel'",
 
   // ------------------------------------------------------------------
   // Forward Metro (React-Native) port and show a toast in VS Code
